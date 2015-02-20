@@ -1,4 +1,5 @@
 #include "XSbench_header.h"
+#include "marker_stub.h"
 
 #ifdef MPI
 #include<mpi.h>
@@ -40,8 +41,10 @@ int main( int argc, char* argv[] )
 	omp_set_num_threads(in.nthreads); 
 
 	// Print-out of Input Summary
-	if( mype == 0 )
+	if( mype == 0 ) {
+		MARKER_INIT;
 		print_inputs( in, nprocs, version );
+	}
 
 	// =====================================================================
 	// Prepare Nuclide Energy Grids, Unionized Energy Grid, & Material Data
@@ -138,6 +141,11 @@ int main( int argc, char* argv[] )
 		exit(1);
 	}
 	#endif	
+    
+	MARKER_START(mype);
+	#if defined(MPI) && defined(GEM5_MARKERS)
+	MPI_Barrier(MPI_COMM_WORLD);
+	#endif
 
 	// OpenMP compiler directives - declaring variables as shared or private
 	#pragma omp parallel default(none) \
@@ -235,6 +243,7 @@ int main( int argc, char* argv[] )
 	{	
 		printf("\n" );
 		printf("Simulation complete.\n" );
+		MARKER_STOP(mype);
 	}
 	#endif
 
